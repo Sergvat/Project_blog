@@ -9,7 +9,7 @@ from .utils import paginator
 
 @cache_page(20, key_prefix='index_page')
 def index(request):
-    post_list = Post.objects.all()
+    post_list = Post.objects.select_related('group').all()
     page_obj = paginator(request, post_list)
     context = {
         'page_obj': page_obj,

@@ -114,7 +114,6 @@ class PostViewTests(TestCase):
             response.context['page_obj'][0].image,
             self.post.image
         )
-        # self.assertContains(response, '<img')
 
     def test_list_post_group_show_correct_context(self):
         """Список постов в шаблоне group_list
@@ -227,10 +226,14 @@ class PostViewTests(TestCase):
 
     def test_cache_index(self):
         """Проверка кеширования главной страницы index."""
+        post_1 = Post.objects.get(pk=1)
         response_old = self.client.get(reverse('posts:index'))
-        cache.clear()
+        post_on_page_old = response_old.content
+        post_1.text = 'Измененный текст'
+        post_1.save()
         response_new = self.client.get(reverse('posts:index'))
-        self.assertNotEqual(response_old, response_new)
+        post_on_page_new = response_new.content
+        self.assertEqual(post_on_page_old, post_on_page_new)
 
     def test_profile_follow(self):
         """Проверка подписки на других пользователей."""
@@ -254,9 +257,9 @@ class PostViewTests(TestCase):
             author=self.author
         )
         response = self.authorized_client.get(url)
-        follow_count = Follow.objects.filter(id=follow.id).count()
+        follow_exsists = Follow.objects.filter(id=follow.id).exists()
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertEqual(follow_count, 0)
+        self.assertFalse(follow_exsists)
 
     def test_profile_follow_page(self):
         """Проверка новой записи в ленте тех, кто подписан."""
