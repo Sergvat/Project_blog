@@ -226,14 +226,16 @@ class PostViewTests(TestCase):
 
     def test_cache_index(self):
         """Проверка кеширования главной страницы index."""
-        post_1 = Post.objects.get(pk=1)
-        response_old = self.client.get(reverse('posts:index'))
-        post_on_page_old = response_old.content
-        post_1.text = 'Измененный текст'
-        post_1.save()
-        response_new = self.client.get(reverse('posts:index'))
-        post_on_page_new = response_new.content
-        self.assertEqual(post_on_page_old, post_on_page_new)
+        post = Post.objects.get(pk=self.post.id)
+        url = reverse('posts:index')
+        response_old = self.client.get(url).content
+        post.text = 'Измененный текст'
+        post.save()
+        response_new = self.client.get(url).content
+        cache.clear()
+        response_change = self.client.get(url).content
+        self.assertEqual(response_old, response_new)
+        self.assertNotEqual(response_change, response_new)
 
     def test_profile_follow(self):
         """Проверка подписки на других пользователей."""
